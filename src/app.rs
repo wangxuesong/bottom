@@ -24,7 +24,8 @@ use layout_manager::*;
 pub use widget_states::*;
 
 use crate::{
-    canvas, constants,
+    constants,
+    data_conversion::DisplayableData,
     units::data_units::DataUnit,
     utils::error::{BottomError, Result},
     Pid,
@@ -86,7 +87,7 @@ pub struct AppState {
     last_key_press: Instant, // TODO: Move out to input
 
     #[builder(default, setter(skip))]
-    pub canvas_data: canvas::DisplayableData,
+    pub canvas_data: DisplayableData,
 
     #[builder(default, setter(skip))]
     pub data_collection: DataCollection,

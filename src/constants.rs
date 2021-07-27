@@ -1,4 +1,4 @@
-use crate::options::ConfigColours;
+use crate::options::ConfigColors;
 use once_cell::sync::Lazy;
 
 // Default widget ID
@@ -34,7 +34,7 @@ pub static DEFAULT_HEADER_STYLE: Lazy<tui::style::Style> =
     Lazy::new(|| tui::style::Style::default().fg(tui::style::Color::LightBlue));
 
 // Colour profiles
-pub static DEFAULT_LIGHT_MODE_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColours {
+pub static DEFAULT_LIGHT_MODE_COLOUR_PALETTE: Lazy<ConfigColors> = Lazy::new(|| ConfigColors {
     text_color: Some("black".to_string()),
     border_color: Some("black".to_string()),
     table_header_color: Some("black".to_string()),
@@ -57,10 +57,10 @@ pub static DEFAULT_LIGHT_MODE_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(||
         "Blue".to_string(),
         "Red".to_string(),
     ]),
-    ..ConfigColours::default()
+    ..ConfigColors::default()
 });
 
-pub static GRUVBOX_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColours {
+pub static GRUVBOX_COLOUR_PALETTE: Lazy<ConfigColors> = Lazy::new(|| ConfigColors {
     table_header_color: Some("#83a598".to_string()),
     all_cpu_color: Some("#8ec07c".to_string()),
     avg_cpu_color: Some("#fb4934".to_string()),
@@ -105,7 +105,7 @@ pub static GRUVBOX_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColo
     low_battery_color: Some("#fb4934".to_string()),
 });
 
-pub static GRUVBOX_LIGHT_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColours {
+pub static GRUVBOX_LIGHT_COLOUR_PALETTE: Lazy<ConfigColors> = Lazy::new(|| ConfigColors {
     table_header_color: Some("#076678".to_string()),
     all_cpu_color: Some("#8ec07c".to_string()),
     avg_cpu_color: Some("#fb4934".to_string()),
@@ -150,7 +150,7 @@ pub static GRUVBOX_LIGHT_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| Conf
     low_battery_color: Some("#cc241d".to_string()),
 });
 
-pub static NORD_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColours {
+pub static NORD_COLOUR_PALETTE: Lazy<ConfigColors> = Lazy::new(|| ConfigColors {
     table_header_color: Some("#81a1c1".to_string()),
     all_cpu_color: Some("#88c0d0".to_string()),
     avg_cpu_color: Some("#8fbcbb".to_string()),
@@ -183,7 +183,7 @@ pub static NORD_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColours
     low_battery_color: Some("#bf616a".to_string()),
 });
 
-pub static NORD_LIGHT_COLOUR_PALETTE: Lazy<ConfigColours> = Lazy::new(|| ConfigColours {
+pub static NORD_LIGHT_COLOUR_PALETTE: Lazy<ConfigColors> = Lazy::new(|| ConfigColors {
     table_header_color: Some("#5e81ac".to_string()),
     all_cpu_color: Some("#81a1c1".to_string()),
     avg_cpu_color: Some("#8fbcbb".to_string()),

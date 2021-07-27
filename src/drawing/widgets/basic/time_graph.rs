@@ -10,7 +10,7 @@ use tui::{
 
 use crate::{
     constants::DEFAULT_TIME_MILLISECONDS,
-    drawing::{Event, EventStatus, Node, Point, Widget},
+    drawing::{Node, Point, Widget},
 };
 
 /// Style for a [`TimeGraph`].

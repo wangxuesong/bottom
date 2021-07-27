@@ -70,8 +70,4 @@ impl<'a, B: Backend> Widget<B> for Carousel<'a, B> {
     fn height(&self) -> tui::layout::Constraint {
         self.height
     }
-
-    fn on_event(&mut self, event: crate::drawing::Event) -> crate::drawing::EventStatus {
-        crate::drawing::EventStatus::Ignored
-    }
 }

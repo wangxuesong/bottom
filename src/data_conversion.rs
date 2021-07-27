@@ -13,6 +13,30 @@ use std::collections::{HashMap, VecDeque};
 /// Point is of time, data
 type Point = (f64, f64);
 
+#[derive(Default)]
+pub struct DisplayableData {
+    pub rx_display: String,
+    pub tx_display: String,
+    pub total_rx_display: String,
+    pub total_tx_display: String,
+    pub network_data_rx: Vec<Point>,
+    pub network_data_tx: Vec<Point>,
+    pub disk_data: Vec<Vec<String>>,
+    pub temp_sensor_data: Vec<Vec<String>>,
+    pub single_process_data: HashMap<Pid, ConvertedProcessData>, // Contains single process data, key is PID
+    pub finalized_process_data_map: HashMap<u64, Vec<ConvertedProcessData>>, // What's actually displayed, key is the widget ID.
+    pub stringified_process_data_map: HashMap<u64, Vec<(Vec<(String, Option<String>)>, bool)>>, // Represents the row and whether it is disabled, key is the widget ID
+
+    pub mem_labels: Option<(String, String)>,
+    pub swap_labels: Option<(String, String)>,
+
+    pub mem_data: Vec<Point>, // TODO: Switch this and all data points over to a better data structure...
+    pub swap_data: Vec<Point>,
+    pub load_avg_data: [f32; 3],
+    pub cpu_data: Vec<ConvertedCpuData>,
+    pub battery_data: Vec<ConvertedBatteryData>,
+}
+
 #[derive(Default, Debug)]
 pub struct ConvertedBatteryData {
     pub battery_name: String,

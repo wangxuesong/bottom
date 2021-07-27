@@ -11,7 +11,6 @@ pub mod utils {
     pub mod gen_util;
     pub mod logging;
 }
-pub mod canvas;
 pub mod clap;
 pub mod constants;
 pub mod data_conversion;

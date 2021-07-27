@@ -1,6 +1,6 @@
 use tui::{backend::Backend, layout::Constraint, style::Style as TuiStyle, widgets::Paragraph};
 
-use crate::drawing::{Element, Event, Node, Widget};
+use crate::drawing::{Element, Node, Widget};
 
 /// The [`Style`] of a [`Text`] determines how it looks.
 #[derive(Default)]

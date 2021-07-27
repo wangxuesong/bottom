@@ -8,8 +8,8 @@ use std::{
 
 use crate::{
     app::{layout_manager::*, *},
-    canvas::ColourScheme,
     constants::*,
+    drawing::ColorScheme,
     units::data_units::DataUnit,
     utils::error::{self, BottomError},
 };
@@ -21,7 +21,7 @@ use anyhow::{Context, Result};
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Config {
     pub flags: Option<ConfigFlags>,
-    pub colors: Option<ConfigColours>,
+    pub colors: Option<ConfigColors>,
     pub row: Option<Vec<Row>>,
     pub disk_filter: Option<IgnoreList>,
     pub mount_filter: Option<IgnoreList>,
@@ -120,7 +120,7 @@ impl WidgetIdEnabled {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
-pub struct ConfigColours {
+pub struct ConfigColors {
     pub table_header_color: Option<String>,
     pub all_cpu_color: Option<String>,
     pub avg_cpu_color: Option<String>,
@@ -144,7 +144,7 @@ pub struct ConfigColours {
     pub low_battery_color: Option<String>,
 }
 
-impl ConfigColours {
+impl ConfigColors {
     pub fn is_empty(&self) -> bool {
         if let Ok(serialized_string) = toml::to_string(self) {
             if !serialized_string.is_empty() {
@@ -897,29 +897,29 @@ fn get_ignore_list(ignore_list: &Option<IgnoreList>) -> error::Result<Option<Fil
 
 pub fn get_color_scheme(
     matches: &clap::ArgMatches<'static>, config: &Config,
-) -> error::Result<ColourScheme> {
+) -> error::Result<ColorScheme> {
     if let Some(color) = matches.value_of("color") {
         // Highest priority is always command line flags...
-        return ColourScheme::from_str(color);
+        return ColorScheme::from_str(color);
     } else if let Some(colors) = &config.colors {
         if !colors.is_empty() {
             // Then, give priority to custom colours...
-            return Ok(ColourScheme::Custom);
+            return Ok(ColorScheme::Custom);
         } else if let Some(flags) = &config.flags {
             // Last priority is config file flags...
             if let Some(color) = &flags.color {
-                return ColourScheme::from_str(color);
+                return ColorScheme::from_str(color);
             }
         }
     } else if let Some(flags) = &config.flags {
         // Last priority is config file flags...
         if let Some(color) = &flags.color {
-            return ColourScheme::from_str(color);
+            return ColorScheme::from_str(color);
         }
     }
 
     // And lastly, the final case is just "default".
-    Ok(ColourScheme::Default)
+    Ok(ColorScheme::Default)
 }
 
 fn get_mem_as_value(matches: &clap::ArgMatches<'static>, config: &Config) -> bool {

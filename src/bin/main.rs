@@ -5,7 +5,6 @@
 extern crate log;
 
 use bottom::{
-    canvas,
     drawing::{paint, View},
     options::*,
     *,
@@ -57,14 +56,7 @@ fn main() -> Result<()> {
         &default_widget_type_option,
     )?;
 
-    // Create painter and set colours.
-    let mut painter = canvas::Painter::init(
-        widget_layout,
-        app.app_config_fields.table_gap,
-        app.app_config_fields.use_basic_mode,
-        &config,
-        get_color_scheme(&matches, &config)?,
-    )?;
+    let colour_palette = get_color_scheme(&matches, &config)?;
 
     // Set up up tui and crossterm
     let mut stdout_val = stdout();

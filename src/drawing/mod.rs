@@ -11,6 +11,9 @@ pub use event::*;
 pub mod hasher;
 pub use hasher::Hasher;
 
+pub mod coloring;
+pub use coloring::*;
+
 use crate::utils::error;
 
 /// The paint function.  Draws the entire app.

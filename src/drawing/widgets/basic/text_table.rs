@@ -7,7 +7,7 @@ use tui::{
     widgets::{Row, Table, TableState},
 };
 
-use crate::drawing::{Event, EventStatus, Node, VerticalScrollDirection, Widget};
+use crate::drawing::{Node, VerticalScrollDirection, Widget};
 
 const DOWN_ARROW: char = '▼';
 const UP_ARROW: char = '▲';
