@@ -10,21 +10,21 @@ use super::button;
 /// The [`State`] of an [`Alert`] tracks which button is selected.
 #[derive(Default)]
 pub struct State {
-    selected_button_index: usize,
+    // selected_button_index: usize,
     button_states: Vec<button::State>,
 }
 
 /// An [`Alert`] serves to be a dialog box with text and user-selectable options.
 /// It does not support scrolling.
 pub struct Alert<'a, B: Backend> {
-    selected_button_index: &'a mut usize,
+    // selected_button_index: &'a mut usize,
     body: Element<'a, B>,
 }
 
 impl<'a, B: Backend + 'a> Alert<'a, B> {
     pub fn new(state: &'a mut State, text: &'a str, buttons: Vec<&'a str>) -> Self {
         let State {
-            selected_button_index,
+            // selected_button_index,
             button_states,
         } = state;
 
@@ -43,7 +43,7 @@ impl<'a, B: Backend + 'a> Alert<'a, B> {
         let body = View::new_with_children(Axis::Vertical, children).into();
 
         Self {
-            selected_button_index,
+            // selected_button_index,
             body,
         }
     }
