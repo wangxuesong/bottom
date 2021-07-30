@@ -39,8 +39,8 @@ use crossterm::{
 };
 
 use app::{
-    data_harvester::{self, processes::ProcessSorting},
-    layout_manager::{UsedWidgets, WidgetDirection},
+    data_harvester::{self, processes::ProcessSorting, UsedWidgets},
+    layout_manager::WidgetDirection,
     AppState,
 };
 use constants::*;
@@ -73,29 +73,43 @@ pub enum ThreadControlEvent {
     UpdateUpdateTime(u64),
 }
 
-pub fn handle_mouse_event(event: MouseEvent, app: &mut AppState) {
+pub enum InputEventOutput {
+    Redraw,
+    Ignore,
+    Exit,
+}
+
+pub fn handle_mouse_event(event: MouseEvent, app: &mut AppState) -> InputEventOutput {
     match event {
-        MouseEvent::ScrollUp(_x, _y, _modifiers) => app.handle_scroll_up(),
-        MouseEvent::ScrollDown(_x, _y, _modifiers) => app.handle_scroll_down(),
+        MouseEvent::ScrollUp(_x, _y, _modifiers) => {
+            app.handle_scroll_up();
+            InputEventOutput::Redraw
+        }
+        MouseEvent::ScrollDown(_x, _y, _modifiers) => {
+            app.handle_scroll_down();
+            InputEventOutput::Redraw
+        }
         MouseEvent::Down(button, x, y, _modifiers) => {
             if !app.app_config_fields.disable_click {
                 match button {
                     crossterm::event::MouseButton::Left => {
                         // Trigger left click widget activity
                         app.on_left_mouse_up(x, y);
+                        InputEventOutput::Redraw
                     }
-                    crossterm::event::MouseButton::Right => {}
-                    _ => {}
+                    _ => InputEventOutput::Ignore,
                 }
+            } else {
+                InputEventOutput::Ignore
             }
         }
-        _ => {}
-    };
+        _ => InputEventOutput::Ignore,
+    }
 }
 
-pub fn handle_key_event_or_break(
+pub fn handle_key_event(
     event: KeyEvent, app: &mut AppState, reset_sender: &std::sync::mpsc::Sender<ThreadControlEvent>,
-) -> bool {
+) -> InputEventOutput {
     // debug!("KeyEvent: {:?}", event);
 
     // TODO: [PASTE] Note that this does NOT support some emojis like flags.  This is due to us
@@ -106,7 +120,7 @@ pub fn handle_key_event_or_break(
     if event.modifiers.is_empty() {
         // Required catch for searching - otherwise you couldn't search with q.
         if event.code == KeyCode::Char('q') && !app.is_in_search_widget() {
-            return true;
+            return InputEventOutput::Exit;
         }
         match event.code {
             KeyCode::End => app.skip_to_last(),
@@ -127,10 +141,13 @@ pub fn handle_key_event_or_break(
             KeyCode::F(5) => app.toggle_tree_mode(),
             KeyCode::F(6) => app.toggle_sort(),
             KeyCode::F(9) => app.start_killing_process(),
-            _ => {}
+            _ => {
+                return InputEventOutput::Ignore;
+            }
         }
+
+        return InputEventOutput::Redraw;
     } else {
-        // Otherwise, track the modifier as well...
         if let KeyModifiers::ALT = event.modifiers {
             match event.code {
                 KeyCode::Char('c') | KeyCode::Char('C') => app.toggle_ignore_case(),
@@ -138,11 +155,15 @@ pub fn handle_key_event_or_break(
                 KeyCode::Char('r') | KeyCode::Char('R') => app.toggle_search_regex(),
                 KeyCode::Char('h') => app.on_left_key(),
                 KeyCode::Char('l') => app.on_right_key(),
-                _ => {}
+                _ => {
+                    return InputEventOutput::Ignore;
+                }
             }
+
+            return InputEventOutput::Redraw;
         } else if let KeyModifiers::CONTROL = event.modifiers {
             if event.code == KeyCode::Char('c') {
-                return true;
+                return InputEventOutput::Exit;
             }
 
             match event.code {
@@ -168,8 +189,12 @@ pub fn handle_key_event_or_break(
                 // Can't do now, CTRL+BACKSPACE doesn't work and graphemes
                 // are hard to iter while truncating last (eloquently).
                 // KeyCode::Backspace => app.skip_word_backspace(),
-                _ => {}
+                _ => {
+                    return InputEventOutput::Ignore;
+                }
             }
+
+            return InputEventOutput::Redraw;
         } else if let KeyModifiers::SHIFT = event.modifiers {
             match event.code {
                 KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
@@ -177,12 +202,16 @@ pub fn handle_key_event_or_break(
                 KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
                 KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
                 KeyCode::Char(caught_char) => app.on_char_key(caught_char),
-                _ => {}
+                _ => {
+                    return InputEventOutput::Ignore;
+                }
             }
+
+            return InputEventOutput::Redraw;
         }
     }
 
-    false
+    InputEventOutput::Ignore
 }
 
 pub fn read_config(config_location: Option<&str>) -> error::Result<Option<PathBuf>> {

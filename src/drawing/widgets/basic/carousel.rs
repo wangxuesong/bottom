@@ -105,15 +105,29 @@ impl<'a, B: Backend> Widget<B> for Carousel<'a, B> {
         let prev_element_name = self.get_prev_element().name;
         let next_element_name = self.get_next_element().name;
 
-        let prev_arrow_text = vec![
+        let prev_arrow_text = Paragraph::new(vec![
             Spans::default(),
             Spans::from(Span::raw(format!("◄ {}", prev_element_name))),
-        ];
+        ])
+        .alignment(tui::layout::Alignment::Left);
 
-        let next_arrow_text = vec![
+        let next_arrow_text = Paragraph::new(vec![
             Spans::default(),
             Spans::from(Span::raw(format!("{} ►", next_element_name))),
-        ];
+        ])
+        .alignment(tui::layout::Alignment::Right);
+
+        // FIXME: See if this even works...
+        ctx.render_widget(
+            prev_arrow_text,
+            // This unsafe call is safe, since we always create a layout with 2 children.
+            unsafe { node.children().get_unchecked(0).bounds() },
+        );
+        ctx.render_widget(
+            next_arrow_text,
+            // This unsafe call is safe, since we always create a layout with 2 children.
+            unsafe { node.children().get_unchecked(0).bounds() },
+        );
 
         // Now draw the rest of the current element...
         self.get_mut_current_element().element.draw(

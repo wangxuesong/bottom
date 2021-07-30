@@ -31,6 +31,8 @@ use crate::{
     Pid,
 };
 
+use self::data_harvester::UsedWidgets;
+
 const MAX_SEARCH_LENGTH: usize = 200;
 
 #[derive(Debug, Clone)]

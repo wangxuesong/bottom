@@ -953,14 +953,3 @@ impl std::str::FromStr for BottomWidgetType {
         }
     }
 }
-
-#[derive(Clone, Default, Debug)]
-pub struct UsedWidgets {
-    pub use_cpu: bool,
-    pub use_mem: bool,
-    pub use_net: bool,
-    pub use_proc: bool,
-    pub use_disk: bool,
-    pub use_temp: bool,
-    pub use_battery: bool,
-}

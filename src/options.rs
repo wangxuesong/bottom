@@ -7,7 +7,7 @@ use std::{
 };
 
 use crate::{
-    app::{layout_manager::*, *},
+    app::{data_harvester::UsedWidgets, layout_manager::*, *},
     constants::*,
     drawing::ColorScheme,
     units::data_units::DataUnit,

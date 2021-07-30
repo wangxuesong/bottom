@@ -132,15 +132,21 @@ fn main() -> Result<()> {
         if let Ok(recv) = receiver.recv() {
             match recv {
                 BottomEvent::KeyInput(event) => {
-                    if handle_key_event_or_break(event, &mut app, &collection_thread_ctrl_sender) {
-                        break;
+                    match handle_key_event(event, &mut app, &collection_thread_ctrl_sender) {
+                        InputEventOutput::Redraw => {
+                            handle_force_redraws(&mut app);
+                        }
+                        InputEventOutput::Ignore => {}
+                        InputEventOutput::Exit => break,
                     }
-                    handle_force_redraws(&mut app);
                 }
-                BottomEvent::MouseInput(event) => {
-                    handle_mouse_event(event, &mut app);
-                    handle_force_redraws(&mut app);
-                }
+                BottomEvent::MouseInput(event) => match handle_mouse_event(event, &mut app) {
+                    InputEventOutput::Redraw => {
+                        handle_force_redraws(&mut app);
+                    }
+                    InputEventOutput::Ignore => {}
+                    InputEventOutput::Exit => break,
+                },
                 BottomEvent::Update(data) => {
                     app.data_collection.eat_data(data);
 

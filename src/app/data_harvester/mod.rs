@@ -10,8 +10,6 @@ use sysinfo::{System, SystemExt};
 
 use battery::{Battery, Manager};
 
-use crate::app::layout_manager::UsedWidgets;
-
 use futures::join;
 
 use super::DataFilters;
@@ -23,6 +21,17 @@ pub mod memory;
 pub mod network;
 pub mod processes;
 pub mod temperature;
+
+#[derive(Clone, Default, Debug)]
+pub struct UsedWidgets {
+    pub use_cpu: bool,
+    pub use_mem: bool,
+    pub use_net: bool,
+    pub use_proc: bool,
+    pub use_disk: bool,
+    pub use_temp: bool,
+    pub use_battery: bool,
+}
 
 #[derive(Clone, Debug)]
 pub struct Data {
