@@ -1,5 +1,8 @@
-pub mod view;
-pub use view::*;
+pub mod col;
+pub use col::*;
+
+pub mod row;
+pub use row::*;
 
 pub mod text_table;
 pub use text_table::TextTable;

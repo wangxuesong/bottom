@@ -40,7 +40,7 @@ use crossterm::{
 
 use app::{
     data_harvester::{self, processes::ProcessSorting, UsedWidgets},
-    layout_manager::WidgetDirection,
+    layout::WidgetDirection,
     AppState,
 };
 use constants::*;
@@ -147,68 +147,66 @@ pub fn handle_key_event(
         }
 
         return InputEventOutput::Redraw;
-    } else {
-        if let KeyModifiers::ALT = event.modifiers {
-            match event.code {
-                KeyCode::Char('c') | KeyCode::Char('C') => app.toggle_ignore_case(),
-                KeyCode::Char('w') | KeyCode::Char('W') => app.toggle_search_whole_word(),
-                KeyCode::Char('r') | KeyCode::Char('R') => app.toggle_search_regex(),
-                KeyCode::Char('h') => app.on_left_key(),
-                KeyCode::Char('l') => app.on_right_key(),
-                _ => {
-                    return InputEventOutput::Ignore;
-                }
+    } else if let KeyModifiers::ALT = event.modifiers {
+        match event.code {
+            KeyCode::Char('c') | KeyCode::Char('C') => app.toggle_ignore_case(),
+            KeyCode::Char('w') | KeyCode::Char('W') => app.toggle_search_whole_word(),
+            KeyCode::Char('r') | KeyCode::Char('R') => app.toggle_search_regex(),
+            KeyCode::Char('h') => app.on_left_key(),
+            KeyCode::Char('l') => app.on_right_key(),
+            _ => {
+                return InputEventOutput::Ignore;
             }
-
-            return InputEventOutput::Redraw;
-        } else if let KeyModifiers::CONTROL = event.modifiers {
-            if event.code == KeyCode::Char('c') {
-                return InputEventOutput::Exit;
-            }
-
-            match event.code {
-                KeyCode::Char('f') => app.on_slash(),
-                KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
-                KeyCode::Right => app.move_widget_selection(&WidgetDirection::Right),
-                KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
-                KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
-                KeyCode::Char('r') => {
-                    if reset_sender.send(ThreadControlEvent::Reset).is_ok() {
-                        app.reset();
-                    }
-                }
-                KeyCode::Char('a') => app.skip_cursor_beginning(),
-                KeyCode::Char('e') => app.skip_cursor_end(),
-                KeyCode::Char('u') => app.clear_search(),
-                KeyCode::Char('w') => app.clear_previous_word(),
-                KeyCode::Char('h') => app.on_backspace(),
-                // KeyCode::Char('j') => {}, // Move down
-                // KeyCode::Char('k') => {}, // Move up
-                // KeyCode::Char('h') => {}, // Move right
-                // KeyCode::Char('l') => {}, // Move left
-                // Can't do now, CTRL+BACKSPACE doesn't work and graphemes
-                // are hard to iter while truncating last (eloquently).
-                // KeyCode::Backspace => app.skip_word_backspace(),
-                _ => {
-                    return InputEventOutput::Ignore;
-                }
-            }
-
-            return InputEventOutput::Redraw;
-        } else if let KeyModifiers::SHIFT = event.modifiers {
-            match event.code {
-                KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
-                KeyCode::Right => app.move_widget_selection(&WidgetDirection::Right),
-                KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
-                KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
-                KeyCode::Char(caught_char) => app.on_char_key(caught_char),
-                _ => {
-                    return InputEventOutput::Ignore;
-                }
-            }
-
-            return InputEventOutput::Redraw;
         }
+
+        return InputEventOutput::Redraw;
+    } else if let KeyModifiers::CONTROL = event.modifiers {
+        if event.code == KeyCode::Char('c') {
+            return InputEventOutput::Exit;
+        }
+
+        match event.code {
+            KeyCode::Char('f') => app.on_slash(),
+            KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
+            KeyCode::Right => app.move_widget_selection(&WidgetDirection::Right),
+            KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
+            KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
+            KeyCode::Char('r') => {
+                if reset_sender.send(ThreadControlEvent::Reset).is_ok() {
+                    app.reset();
+                }
+            }
+            KeyCode::Char('a') => app.skip_cursor_beginning(),
+            KeyCode::Char('e') => app.skip_cursor_end(),
+            KeyCode::Char('u') => app.clear_search(),
+            KeyCode::Char('w') => app.clear_previous_word(),
+            KeyCode::Char('h') => app.on_backspace(),
+            // KeyCode::Char('j') => {}, // Move down
+            // KeyCode::Char('k') => {}, // Move up
+            // KeyCode::Char('h') => {}, // Move right
+            // KeyCode::Char('l') => {}, // Move left
+            // Can't do now, CTRL+BACKSPACE doesn't work and graphemes
+            // are hard to iter while truncating last (eloquently).
+            // KeyCode::Backspace => app.skip_word_backspace(),
+            _ => {
+                return InputEventOutput::Ignore;
+            }
+        }
+
+        return InputEventOutput::Redraw;
+    } else if let KeyModifiers::SHIFT = event.modifiers {
+        match event.code {
+            KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
+            KeyCode::Right => app.move_widget_selection(&WidgetDirection::Right),
+            KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
+            KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
+            KeyCode::Char(caught_char) => app.on_char_key(caught_char),
+            _ => {
+                return InputEventOutput::Ignore;
+            }
+        }
+
+        return InputEventOutput::Redraw;
     }
 
     InputEventOutput::Ignore
@@ -395,7 +393,7 @@ pub fn update_app_data(app: &mut AppState) {
 
         // Temperatures
         if app.used_widgets.use_temp {
-            app.canvas_data.temp_sensor_data = convert_temp_row(&app);
+            app.canvas_data.temp_sensor_data = convert_temp_row(app);
         }
 
         // Memory
@@ -493,7 +491,7 @@ fn update_final_process_list(app: &mut AppState, widget_id: u64) {
                 .filter_map(|(_pid, process)| {
                     if !is_invalid_or_blank {
                         if let Some(process_filter) = process_filter {
-                            if process_filter.check(&process, is_using_command) {
+                            if process_filter.check(process, is_using_command) {
                                 Some(process)
                             } else {
                                 None
@@ -539,7 +537,7 @@ fn update_final_process_list(app: &mut AppState, widget_id: u64) {
 
             app.canvas_data.stringified_process_data_map.insert(
                 widget_id,
-                stringify_process_data(&proc_widget_state, &finalized_process_data),
+                stringify_process_data(proc_widget_state, &finalized_process_data),
             );
             app.canvas_data
                 .finalized_process_data_map

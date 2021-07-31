@@ -1,6 +1,6 @@
 [package]
 name = "bottom"
-version = "0.6.3"
+version = "1.0.0"
 authors = ["Clement Tsang <cjhtsang@uwaterloo.ca>"]
 edition = "2018"
 repository = "https://github.com/ClementTsang/bottom"
@@ -25,8 +25,6 @@ doc = false
 [profile.release]
 debug = 0
 lto = true
-# debug = true
-# lto = false
 opt-level = 3
 codegen-units = 1
 

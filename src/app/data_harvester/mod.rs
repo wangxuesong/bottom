@@ -22,7 +22,7 @@ pub mod network;
 pub mod processes;
 pub mod temperature;
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug)]
 pub struct UsedWidgets {
     pub use_cpu: bool,
     pub use_mem: bool,
@@ -31,6 +31,20 @@ pub struct UsedWidgets {
     pub use_disk: bool,
     pub use_temp: bool,
     pub use_battery: bool,
+}
+
+impl Default for UsedWidgets {
+    fn default() -> Self {
+        Self {
+            use_cpu: true,
+            use_mem: true,
+            use_net: true,
+            use_proc: true,
+            use_disk: true,
+            use_temp: true,
+            use_battery: false,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -247,7 +261,7 @@ impl DataCollector {
         if let Some(battery_manager) = &self.battery_manager {
             if let Some(battery_list) = &mut self.battery_list {
                 self.data.list_of_batteries =
-                    Some(batteries::refresh_batteries(&battery_manager, battery_list));
+                    Some(batteries::refresh_batteries(battery_manager, battery_list));
             }
         }
 

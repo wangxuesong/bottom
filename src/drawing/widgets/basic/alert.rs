@@ -3,7 +3,7 @@ use tui::{
     layout::{Constraint, Rect},
 };
 
-use crate::drawing::{Axis, Button, Element, Text, View, Widget};
+use crate::drawing::{Axis, Button, Col, Element, Text, Widget};
 
 use super::button;
 
@@ -28,8 +28,7 @@ impl<'a, B: Backend + 'a> Alert<'a, B> {
             button_states,
         } = state;
 
-        let button_view = View::new_with_children(
-            Axis::Horizontal,
+        let button_view = Col::new_with_children(
             buttons
                 .into_iter()
                 .zip(button_states)
@@ -37,10 +36,10 @@ impl<'a, B: Backend + 'a> Alert<'a, B> {
                 .collect(),
         );
 
-        // It's just composed of a [`View`] with two [`Button`]s and a [`Text`]!
+        // It's just composed of a [`Col`] with two [`Button`]s and a [`Text`]!
         let children = vec![Text::new(text).into(), button_view.into()];
         // TODO: Spacing, size, etc.
-        let body = View::new_with_children(Axis::Vertical, children).into();
+        let body = Col::new_with_children(children).into();
 
         Self {
             // selected_button_index,

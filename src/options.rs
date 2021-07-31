@@ -1,20 +1,14 @@
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-    time::Instant,
-};
+use std::{collections::HashMap, str::FromStr, time::Instant};
 
 use crate::{
-    app::{data_harvester::UsedWidgets, layout_manager::*, *},
+    app::{data_harvester::UsedWidgets, layout::*, *},
     constants::*,
     drawing::ColorScheme,
     units::data_units::DataUnit,
     utils::error::{self, BottomError},
 };
-
-use self::layout_options::*;
 
 use anyhow::{Context, Result};
 
@@ -22,7 +16,7 @@ use anyhow::{Context, Result};
 pub struct Config {
     pub flags: Option<ConfigFlags>,
     pub colors: Option<ConfigColors>,
-    pub row: Option<Vec<Row>>,
+    pub layout: Option<BottomLayout>,
     pub disk_filter: Option<IgnoreList>,
     pub mount_filter: Option<IgnoreList>,
     pub temp_filter: Option<IgnoreList>,
@@ -177,142 +171,47 @@ pub struct IgnoreList {
 }
 
 pub fn build_app(
-    matches: &clap::ArgMatches<'static>, config: &mut Config, widget_layout: &BottomLayout,
-    default_widget_id: u64, default_widget_type_option: &Option<BottomWidgetType>,
+    matches: &clap::ArgMatches<'static>, config: &mut Config, default_widget_id: u64,
 ) -> Result<AppState> {
     use BottomWidgetType::*;
-    let autohide_time = get_autohide_time(&matches, &config);
-    let default_time_value = get_default_time_value(&matches, &config)
+    let autohide_time = get_autohide_time(matches, config);
+    let default_time_value = get_default_time_value(matches, config)
         .context("Update 'default_time_value' in your config file.")?;
-    let use_basic_mode = get_use_basic_mode(&matches, &config);
+    let use_basic_mode = get_use_basic_mode(matches, config);
 
     // For processes
-    let is_grouped = get_app_grouping(matches, config);
-    let is_case_sensitive = get_app_case_sensitive(matches, config);
-    let is_match_whole_word = get_app_match_whole_word(matches, config);
-    let is_use_regex = get_app_use_regex(matches, config);
+    let _is_grouped = get_app_grouping(matches, config);
+    let _is_case_sensitive = get_app_case_sensitive(matches, config);
+    let _is_match_whole_word = get_app_match_whole_word(matches, config);
+    let _is_use_regex = get_app_use_regex(matches, config);
 
-    let mut widget_map = HashMap::new();
-    let mut cpu_state_map: HashMap<u64, CpuWidgetState> = HashMap::new();
-    let mut mem_state_map: HashMap<u64, MemWidgetState> = HashMap::new();
-    let mut net_state_map: HashMap<u64, NetWidgetState> = HashMap::new();
+    let widget_map = HashMap::new();
+    let cpu_state_map: HashMap<u64, CpuWidgetState> = HashMap::new();
+    let mem_state_map: HashMap<u64, MemWidgetState> = HashMap::new();
+    let net_state_map: HashMap<u64, NetWidgetState> = HashMap::new();
     let mut proc_state_map: HashMap<u64, ProcWidgetState> = HashMap::new();
-    let mut temp_state_map: HashMap<u64, TempWidgetState> = HashMap::new();
-    let mut disk_state_map: HashMap<u64, DiskWidgetState> = HashMap::new();
-    let mut battery_state_map: HashMap<u64, BatteryWidgetState> = HashMap::new();
+    let temp_state_map: HashMap<u64, TempWidgetState> = HashMap::new();
+    let disk_state_map: HashMap<u64, DiskWidgetState> = HashMap::new();
+    let battery_state_map: HashMap<u64, BatteryWidgetState> = HashMap::new();
 
-    let autohide_timer = if autohide_time {
+    let _autohide_timer = if autohide_time {
         Some(Instant::now())
     } else {
         None
     };
 
-    let mut initial_widget_id: u64 = default_widget_id;
-    let mut initial_widget_type = Proc;
-    let is_custom_layout = config.row.is_some();
-    let mut used_widget_set = HashSet::new();
+    let initial_widget_id: u64 = default_widget_id;
+    let initial_widget_type = Proc;
+    let _is_custom_layout = config.layout.is_some();
 
-    let show_memory_as_values = get_mem_as_value(matches, config);
-    let is_default_tree = get_is_default_tree(matches, config);
-    let is_default_command = get_is_default_process_command(matches, config);
+    let _show_memory_as_values = get_mem_as_value(matches, config);
+    let _is_default_tree = get_is_default_tree(matches, config);
+    let _is_default_command = get_is_default_process_command(matches, config);
     let is_advanced_kill = !get_is_advanced_kill_disabled(matches, config);
 
     let network_unit_type = get_network_unit_type(matches, config);
     let network_scale_type = get_network_scale_type(matches, config);
     let network_use_binary_prefix = get_network_use_binary_prefix(matches, config);
-
-    for row in &widget_layout.rows {
-        for col in &row.children {
-            for col_row in &col.children {
-                for widget in &col_row.children {
-                    widget_map.insert(widget.widget_id, widget.clone());
-                    if let Some(default_widget_type) = &default_widget_type_option {
-                        if !is_custom_layout || use_basic_mode {
-                            match widget.widget_type {
-                                BasicCpu => {
-                                    if let Cpu = *default_widget_type {
-                                        initial_widget_id = widget.widget_id;
-                                        initial_widget_type = Cpu;
-                                    }
-                                }
-                                BasicMem => {
-                                    if let Mem = *default_widget_type {
-                                        initial_widget_id = widget.widget_id;
-                                        initial_widget_type = Cpu;
-                                    }
-                                }
-                                BasicNet => {
-                                    if let Net = *default_widget_type {
-                                        initial_widget_id = widget.widget_id;
-                                        initial_widget_type = Cpu;
-                                    }
-                                }
-                                _ => {
-                                    if *default_widget_type == widget.widget_type {
-                                        initial_widget_id = widget.widget_id;
-                                        initial_widget_type = widget.widget_type.clone();
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    used_widget_set.insert(widget.widget_type.clone());
-
-                    match widget.widget_type {
-                        Cpu => {
-                            cpu_state_map.insert(
-                                widget.widget_id,
-                                CpuWidgetState::init(default_time_value, autohide_timer),
-                            );
-                        }
-                        Mem => {
-                            mem_state_map.insert(
-                                widget.widget_id,
-                                MemWidgetState::init(default_time_value, autohide_timer),
-                            );
-                        }
-                        Net => {
-                            net_state_map.insert(
-                                widget.widget_id,
-                                NetWidgetState::init(
-                                    default_time_value,
-                                    autohide_timer,
-                                    // network_unit_type.clone(),
-                                    // network_scale_type.clone(),
-                                ),
-                            );
-                        }
-                        Proc => {
-                            proc_state_map.insert(
-                                widget.widget_id,
-                                ProcWidgetState::init(
-                                    is_case_sensitive,
-                                    is_match_whole_word,
-                                    is_use_regex,
-                                    is_grouped,
-                                    show_memory_as_values,
-                                    is_default_tree,
-                                    is_default_command,
-                                ),
-                            );
-                        }
-                        Disk => {
-                            disk_state_map.insert(widget.widget_id, DiskWidgetState::init());
-                        }
-                        Temp => {
-                            temp_state_map.insert(widget.widget_id, TempWidgetState::init());
-                        }
-                        Battery => {
-                            battery_state_map
-                                .insert(widget.widget_id, BatteryWidgetState::default());
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-    }
 
     let basic_table_widget_state = if use_basic_mode {
         Some(match initial_widget_type {
@@ -370,15 +269,7 @@ pub fn build_app(
         network_use_binary_prefix,
     };
 
-    let used_widgets = UsedWidgets {
-        use_cpu: used_widget_set.get(&Cpu).is_some() || used_widget_set.get(&BasicCpu).is_some(),
-        use_mem: used_widget_set.get(&Mem).is_some() || used_widget_set.get(&BasicMem).is_some(),
-        use_net: used_widget_set.get(&Net).is_some() || used_widget_set.get(&BasicNet).is_some(),
-        use_proc: used_widget_set.get(&Proc).is_some(),
-        use_disk: used_widget_set.get(&Disk).is_some(),
-        use_temp: used_widget_set.get(&Temp).is_some(),
-        use_battery: used_widget_set.get(&Battery).is_some(),
-    };
+    let used_widgets = UsedWidgets::default();
 
     let disk_filter =
         get_ignore_list(&config.disk_filter).context("Update 'disk_filter' in your config file")?;
@@ -435,7 +326,7 @@ pub fn build_app(
         .temp_state(TempState::init(temp_state_map))
         .battery_state(BatteryState::init(battery_state_map))
         .basic_table_widget_state(basic_table_widget_state)
-        .current_widget(widget_map.get(&initial_widget_id).unwrap().clone()) // TODO: [UNWRAP] - many of the unwraps are fine (like this one) but do a once-over and/or switch to expect?
+        .current_widget(BottomWidget::default()) // FIXME: [rewrite] This is currently not correct!!!!!!
         .widget_map(widget_map)
         .used_widgets(used_widgets)
         .filters(DataFilters {
@@ -450,66 +341,14 @@ pub fn build_app(
 pub fn get_widget_layout(
     matches: &clap::ArgMatches<'static>, config: &Config,
 ) -> error::Result<(BottomLayout, u64, Option<BottomWidgetType>)> {
-    let left_legend = get_use_left_legend(matches, config);
-    let (default_widget_type, mut default_widget_count) =
-        get_default_widget_and_count(matches, config)?;
-    let mut default_widget_id = 1;
+    // FIXME: [rewrite] Get widget layout.
 
-    let bottom_layout = if get_use_basic_mode(matches, config) {
-        default_widget_id = DEFAULT_WIDGET_ID;
-
-        BottomLayout::init_basic_default(get_use_battery(matches, config))
+    if get_use_basic_mode(matches, config) {
     } else {
-        let ref_row: Vec<Row>; // Required to handle reference
-        let rows = match &config.row {
-            Some(r) => r,
-            None => {
-                // This cannot (like it really shouldn't) fail!
-                ref_row = toml::from_str::<Config>(if get_use_battery(matches, config) {
-                    DEFAULT_BATTERY_LAYOUT
-                } else {
-                    DEFAULT_LAYOUT
-                })?
-                .row
-                .unwrap();
-                &ref_row
-            }
-        };
+        let _use_left_legend = get_use_left_legend(matches, config);
+    }
 
-        let mut iter_id = 0; // A lazy way of forcing unique IDs *shrugs*
-        let mut total_height_ratio = 0;
-
-        let mut ret_bottom_layout = BottomLayout {
-            rows: rows
-                .iter()
-                .map(|row| {
-                    row.convert_row_to_bottom_row(
-                        &mut iter_id,
-                        &mut total_height_ratio,
-                        &mut default_widget_id,
-                        &default_widget_type,
-                        &mut default_widget_count,
-                        left_legend,
-                    )
-                })
-                .collect::<error::Result<Vec<_>>>()?,
-            total_row_height_ratio: total_height_ratio,
-        };
-
-        // Confirm that we have at least ONE widget left - if not, error out!
-        if iter_id > 0 {
-            ret_bottom_layout.get_movement_mappings();
-            // debug!("Bottom layout: {:#?}", ret_bottom_layout);
-
-            ret_bottom_layout
-        } else {
-            return Err(error::BottomError::ConfigError(
-                "please have at least one widget under the '[[row]]' section.".to_string(),
-            ));
-        }
-    };
-
-    Ok((bottom_layout, default_widget_id, default_widget_type))
+    Ok((BottomLayout::default(), 0, None))
 }
 
 fn get_update_rate_in_milliseconds(
@@ -1014,372 +853,4 @@ fn get_network_use_binary_prefix(matches: &clap::ArgMatches<'static>, config: &C
         }
     }
     false
-}
-
-pub mod layout_options {
-    use crate::app::layout_manager::*;
-    use crate::error::Result;
-    use serde::{Deserialize, Serialize};
-
-    /// Represents a row.  This has a length of some sort (optional) and a vector
-    /// of children.
-    #[derive(Clone, Deserialize, Debug, Serialize)]
-    #[serde(rename = "row")]
-    pub struct Row {
-        pub ratio: Option<u32>,
-        pub child: Option<Vec<RowChildren>>,
-    }
-
-    impl Row {
-        pub fn convert_row_to_bottom_row(
-            &self, iter_id: &mut u64, total_height_ratio: &mut u32, default_widget_id: &mut u64,
-            default_widget_type: &Option<BottomWidgetType>, default_widget_count: &mut u64,
-            left_legend: bool,
-        ) -> Result<BottomRow> {
-            // TODO: In the future we want to also add percentages.
-            // But for MVP, we aren't going to bother.
-            let row_ratio = self.ratio.unwrap_or(1);
-            let mut children = Vec::new();
-
-            *total_height_ratio += row_ratio;
-
-            let mut total_col_ratio = 0;
-            if let Some(row_children) = &self.child {
-                for row_child in row_children {
-                    match row_child {
-                        RowChildren::Widget(widget) => {
-                            *iter_id += 1;
-                            let width_ratio = widget.ratio.unwrap_or(1);
-                            total_col_ratio += width_ratio;
-                            let widget_type = widget.widget_type.parse::<BottomWidgetType>()?;
-
-                            if let Some(default_widget_type_val) = default_widget_type {
-                                if *default_widget_type_val == widget_type
-                                    && *default_widget_count > 0
-                                {
-                                    *default_widget_count -= 1;
-                                    if *default_widget_count == 0 {
-                                        *default_widget_id = *iter_id;
-                                    }
-                                }
-                            } else {
-                                // Check default flag
-                                if let Some(default_widget_flag) = widget.default {
-                                    if default_widget_flag {
-                                        *default_widget_id = *iter_id;
-                                    }
-                                }
-                            }
-
-                            children.push(match widget_type {
-                                BottomWidgetType::Cpu => {
-                                    let cpu_id = *iter_id;
-                                    *iter_id += 1;
-                                    BottomCol::builder()
-                                        .col_width_ratio(width_ratio)
-                                        .children(if left_legend {
-                                            vec![BottomColRow::builder()
-                                                .total_widget_ratio(20)
-                                                .children(vec![
-                                                    BottomWidget::builder()
-                                                        .width_ratio(3)
-                                                        .widget_type(BottomWidgetType::CpuLegend)
-                                                        .widget_id(*iter_id)
-                                                        .canvas_handle_width(true)
-                                                        .parent_reflector(Some((
-                                                            WidgetDirection::Right,
-                                                            1,
-                                                        )))
-                                                        .build(),
-                                                    BottomWidget::builder()
-                                                        .width_ratio(17)
-                                                        .widget_type(BottomWidgetType::Cpu)
-                                                        .widget_id(cpu_id)
-                                                        .flex_grow(true)
-                                                        .build(),
-                                                ])
-                                                .build()]
-                                        } else {
-                                            vec![BottomColRow::builder()
-                                                .total_widget_ratio(20)
-                                                .children(vec![
-                                                    BottomWidget::builder()
-                                                        .width_ratio(17)
-                                                        .widget_type(BottomWidgetType::Cpu)
-                                                        .widget_id(cpu_id)
-                                                        .flex_grow(true)
-                                                        .build(),
-                                                    BottomWidget::builder()
-                                                        .width_ratio(3)
-                                                        .widget_type(BottomWidgetType::CpuLegend)
-                                                        .widget_id(*iter_id)
-                                                        .canvas_handle_width(true)
-                                                        .parent_reflector(Some((
-                                                            WidgetDirection::Left,
-                                                            1,
-                                                        )))
-                                                        .build(),
-                                                ])
-                                                .build()]
-                                        })
-                                        .build()
-                                }
-                                BottomWidgetType::Proc => {
-                                    let proc_id = *iter_id;
-                                    let proc_search_id = *iter_id + 1;
-                                    *iter_id += 2;
-                                    BottomCol::builder()
-                                        .total_col_row_ratio(2)
-                                        .col_width_ratio(width_ratio)
-                                        .children(vec![
-                                            BottomColRow::builder()
-                                                .children(vec![
-                                                    BottomWidget::builder()
-                                                        .widget_type(BottomWidgetType::ProcSort)
-                                                        .widget_id(*iter_id)
-                                                        .canvas_handle_width(true)
-                                                        .parent_reflector(Some((
-                                                            WidgetDirection::Right,
-                                                            2,
-                                                        )))
-                                                        .width_ratio(1)
-                                                        .build(),
-                                                    BottomWidget::builder()
-                                                        .widget_type(BottomWidgetType::Proc)
-                                                        .widget_id(proc_id)
-                                                        .width_ratio(2)
-                                                        .build(),
-                                                ])
-                                                .total_widget_ratio(3)
-                                                .flex_grow(true)
-                                                .build(),
-                                            BottomColRow::builder()
-                                                .children(vec![BottomWidget::builder()
-                                                    .widget_type(BottomWidgetType::ProcSearch)
-                                                    .widget_id(proc_search_id)
-                                                    .parent_reflector(Some((
-                                                        WidgetDirection::Up,
-                                                        1,
-                                                    )))
-                                                    .build()])
-                                                .canvas_handle_height(true)
-                                                .build(),
-                                        ])
-                                        .build()
-                                }
-                                _ => BottomCol::builder()
-                                    .col_width_ratio(width_ratio)
-                                    .children(vec![BottomColRow::builder()
-                                        .children(vec![BottomWidget::builder()
-                                            .widget_type(widget_type)
-                                            .widget_id(*iter_id)
-                                            .build()])
-                                        .build()])
-                                    .build(),
-                            });
-                        }
-                        RowChildren::Col { ratio, child } => {
-                            let col_width_ratio = ratio.unwrap_or(1);
-                            total_col_ratio += col_width_ratio;
-                            let mut total_col_row_ratio = 0;
-                            let mut contains_proc = false;
-
-                            let mut col_row_children: Vec<BottomColRow> = Vec::new();
-
-                            for widget in child {
-                                let widget_type = widget.widget_type.parse::<BottomWidgetType>()?;
-                                *iter_id += 1;
-                                let col_row_height_ratio = widget.ratio.unwrap_or(1);
-                                total_col_row_ratio += col_row_height_ratio;
-
-                                if let Some(default_widget_type_val) = default_widget_type {
-                                    if *default_widget_type_val == widget_type
-                                        && *default_widget_count > 0
-                                    {
-                                        *default_widget_count -= 1;
-                                        if *default_widget_count == 0 {
-                                            *default_widget_id = *iter_id;
-                                        }
-                                    }
-                                } else {
-                                    // Check default flag
-                                    if let Some(default_widget_flag) = widget.default {
-                                        if default_widget_flag {
-                                            *default_widget_id = *iter_id;
-                                        }
-                                    }
-                                }
-
-                                match widget_type {
-                                    BottomWidgetType::Cpu => {
-                                        let cpu_id = *iter_id;
-                                        *iter_id += 1;
-                                        if left_legend {
-                                            col_row_children.push(
-                                                BottomColRow::builder()
-                                                    .col_row_height_ratio(col_row_height_ratio)
-                                                    .total_widget_ratio(20)
-                                                    .children(vec![
-                                                        BottomWidget::builder()
-                                                            .width_ratio(3)
-                                                            .widget_type(
-                                                                BottomWidgetType::CpuLegend,
-                                                            )
-                                                            .widget_id(*iter_id)
-                                                            .canvas_handle_width(true)
-                                                            .parent_reflector(Some((
-                                                                WidgetDirection::Right,
-                                                                1,
-                                                            )))
-                                                            .build(),
-                                                        BottomWidget::builder()
-                                                            .width_ratio(17)
-                                                            .widget_type(BottomWidgetType::Cpu)
-                                                            .widget_id(cpu_id)
-                                                            .flex_grow(true)
-                                                            .build(),
-                                                    ])
-                                                    .build(),
-                                            );
-                                        } else {
-                                            col_row_children.push(
-                                                BottomColRow::builder()
-                                                    .col_row_height_ratio(col_row_height_ratio)
-                                                    .total_widget_ratio(20)
-                                                    .children(vec![
-                                                        BottomWidget::builder()
-                                                            .width_ratio(17)
-                                                            .widget_type(BottomWidgetType::Cpu)
-                                                            .widget_id(cpu_id)
-                                                            .flex_grow(true)
-                                                            .build(),
-                                                        BottomWidget::builder()
-                                                            .width_ratio(3)
-                                                            .widget_type(
-                                                                BottomWidgetType::CpuLegend,
-                                                            )
-                                                            .widget_id(*iter_id)
-                                                            .canvas_handle_width(true)
-                                                            .parent_reflector(Some((
-                                                                WidgetDirection::Left,
-                                                                1,
-                                                            )))
-                                                            .build(),
-                                                    ])
-                                                    .build(),
-                                            );
-                                        }
-                                    }
-                                    BottomWidgetType::Proc => {
-                                        contains_proc = true;
-                                        let proc_id = *iter_id;
-                                        let proc_search_id = *iter_id + 1;
-                                        *iter_id += 2;
-                                        col_row_children.push(
-                                            BottomColRow::builder()
-                                                .children(vec![
-                                                    BottomWidget::builder()
-                                                        .widget_type(BottomWidgetType::ProcSort)
-                                                        .widget_id(*iter_id)
-                                                        .canvas_handle_width(true)
-                                                        .parent_reflector(Some((
-                                                            WidgetDirection::Right,
-                                                            2,
-                                                        )))
-                                                        .width_ratio(1)
-                                                        .build(),
-                                                    BottomWidget::builder()
-                                                        .widget_type(BottomWidgetType::Proc)
-                                                        .widget_id(proc_id)
-                                                        .width_ratio(2)
-                                                        .build(),
-                                                ])
-                                                .col_row_height_ratio(col_row_height_ratio)
-                                                .total_widget_ratio(3)
-                                                .build(),
-                                        );
-                                        col_row_children.push(
-                                            BottomColRow::builder()
-                                                .col_row_height_ratio(col_row_height_ratio)
-                                                .children(vec![BottomWidget::builder()
-                                                    .widget_type(BottomWidgetType::ProcSearch)
-                                                    .widget_id(proc_search_id)
-                                                    .parent_reflector(Some((
-                                                        WidgetDirection::Up,
-                                                        1,
-                                                    )))
-                                                    .build()])
-                                                .canvas_handle_height(true)
-                                                .build(),
-                                        );
-                                    }
-                                    _ => col_row_children.push(
-                                        BottomColRow::builder()
-                                            .col_row_height_ratio(col_row_height_ratio)
-                                            .children(vec![BottomWidget::builder()
-                                                .widget_type(widget_type)
-                                                .widget_id(*iter_id)
-                                                .build()])
-                                            .build(),
-                                    ),
-                                }
-                            }
-
-                            if contains_proc {
-                                // Must adjust ratios to work with proc
-                                total_col_row_ratio *= 2;
-                                for child in &mut col_row_children {
-                                    // Multiply all non-proc or proc-search ratios by 2
-                                    if !child.children.is_empty() {
-                                        match child.children[0].widget_type {
-                                            BottomWidgetType::ProcSearch => {}
-                                            _ => child.col_row_height_ratio *= 2,
-                                        }
-                                    }
-                                }
-                            }
-
-                            children.push(
-                                BottomCol::builder()
-                                    .total_col_row_ratio(total_col_row_ratio)
-                                    .col_width_ratio(col_width_ratio)
-                                    .children(col_row_children)
-                                    .build(),
-                            );
-                        }
-                    }
-                }
-            }
-
-            Ok(BottomRow::builder()
-                .total_col_ratio(total_col_ratio)
-                .row_height_ratio(row_ratio)
-                .children(children)
-                .build())
-        }
-    }
-
-    /// Represents a child of a Row - either a Col (column) or a FinalWidget.
-    ///
-    /// A Col can also have an optional length and children.  We only allow columns
-    /// to have FinalWidgets as children, lest we get some amount of mutual
-    /// recursion between Row and Col.
-    #[derive(Clone, Deserialize, Debug, Serialize)]
-    #[serde(untagged)]
-    pub enum RowChildren {
-        Widget(FinalWidget),
-        Col {
-            ratio: Option<u32>,
-            child: Vec<FinalWidget>,
-        },
-    }
-
-    /// Represents a widget.
-    #[derive(Clone, Deserialize, Debug, Serialize)]
-    pub struct FinalWidget {
-        pub ratio: Option<u32>,
-        #[serde(rename = "type")]
-        pub widget_type: String,
-        pub default: Option<bool>,
-    }
 }

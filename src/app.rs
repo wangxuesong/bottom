@@ -1,7 +1,7 @@
 pub mod data_farmer;
 pub mod data_harvester;
 pub mod filter;
-pub mod layout_manager;
+pub mod layout;
 mod process_killer;
 pub mod query;
 pub mod widget_states;
@@ -20,7 +20,7 @@ use typed_builder::*;
 use data_farmer::*;
 use data_harvester::{processes, temperature};
 pub use filter::*;
-use layout_manager::*;
+use layout::*;
 pub use widget_states::*;
 
 use crate::{
@@ -1576,7 +1576,7 @@ impl AppState {
                 WidgetDirection::Up => self.current_widget.up_neighbour,
                 WidgetDirection::Down => self.current_widget.down_neighbour,
             }) {
-                if let Some(new_widget) = self.widget_map.get(&new_widget_id) {
+                if let Some(new_widget) = self.widget_map.get(new_widget_id) {
                     match &new_widget.widget_type {
                         BottomWidgetType::Temp
                         | BottomWidgetType::Proc
@@ -2720,7 +2720,7 @@ impl AppState {
                 (widget.top_left_corner, widget.bottom_right_corner)
             {
                 if (x >= tlc_x && y >= tlc_y) && (x < brc_x && y < brc_y) {
-                    if let Some(new_widget) = self.widget_map.get(&new_widget_id) {
+                    if let Some(new_widget) = self.widget_map.get(new_widget_id) {
                         self.current_widget = new_widget.clone();
 
                         match &self.current_widget.widget_type {

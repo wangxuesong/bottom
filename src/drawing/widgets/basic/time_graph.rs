@@ -150,7 +150,7 @@ impl<'a, B: Backend> Widget<B> for TimeGraph<'a> {
 
         let interpolated_points = self
             .data
-            .into_iter()
+            .iter()
             .filter_map(|(dataset, style, _)| {
                 if let Some(end_pos) = dataset.iter().position(|(time, _data)| *time >= time_start)
                 {

@@ -5,7 +5,7 @@
 extern crate log;
 
 use bottom::{
-    drawing::{paint, View},
+    drawing::{paint, Col},
     options::*,
     *,
 };
@@ -48,15 +48,9 @@ fn main() -> Result<()> {
             .context("Found an issue while trying to build the widget layout.")?;
 
     // Create "app" struct, which will control most of the program and store settings/state
-    let mut app = build_app(
-        &matches,
-        &mut config,
-        &widget_layout,
-        default_widget_id,
-        &default_widget_type_option,
-    )?;
+    let mut app = build_app(&matches, &mut config, default_widget_id)?;
 
-    let colour_palette = get_color_scheme(&matches, &config)?;
+    let color_palette = get_color_scheme(&matches, &config)?;
 
     // Set up up tui and crossterm
     let mut stdout_val = stdout();
@@ -171,7 +165,7 @@ fn main() -> Result<()> {
             }
 
             // TODO: Create new draw state.
-            let mut root = View::new(drawing::Axis::Horizontal).into();
+            let mut root = Col::new().into();
             if paint(&mut terminal, &mut root).is_err() {
                 break;
             }

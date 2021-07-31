@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use tui::widgets::TableState;
 
-use crate::{app::layout_manager::BottomWidgetType, constants};
+use crate::{app::layout::BottomWidgetType, constants};
 
 pub mod process_state;
 pub use process_state::*;
