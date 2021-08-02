@@ -459,7 +459,7 @@ fn update_final_process_list(app: &mut AppState, widget_id: u64) {
                 &mut app.user_table,
             );
         }
-        let process_filter = app.get_process_filter(widget_id);
+        let process_filter: &Option<app::query::Query> = app.get_process_filter(widget_id);
         let filtered_process_data: Vec<ConvertedProcessData> = if is_tree {
             app.canvas_data
                 .single_process_data

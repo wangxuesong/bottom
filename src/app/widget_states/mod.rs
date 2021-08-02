@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use tui::widgets::TableState;
 
-use crate::{app::layout::BottomWidgetType, constants};
+use crate::constants;
 
 pub mod process_state;
 pub use process_state::*;
@@ -24,6 +24,8 @@ pub use battery_state::*;
 
 pub mod temp_state;
 pub use temp_state::*;
+
+use super::widget::BottomWidgetType;
 
 #[derive(Debug)]
 pub enum ScrollDirection {

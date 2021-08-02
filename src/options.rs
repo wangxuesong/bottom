@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr, time::Instant};
 
 use crate::{
-    app::{data_harvester::UsedWidgets, layout::*, *},
+    app::{data_harvester::UsedWidgets, layout::*, widget::BottomWidgetType, *},
     constants::*,
     drawing::ColorScheme,
     units::data_units::DataUnit,
@@ -173,7 +173,6 @@ pub struct IgnoreList {
 pub fn build_app(
     matches: &clap::ArgMatches<'static>, config: &mut Config, default_widget_id: u64,
 ) -> Result<AppState> {
-    use BottomWidgetType::*;
     let autohide_time = get_autohide_time(matches, config);
     let default_time_value = get_default_time_value(matches, config)
         .context("Update 'default_time_value' in your config file.")?;
@@ -200,7 +199,7 @@ pub fn build_app(
     };
 
     let initial_widget_id: u64 = default_widget_id;
-    let initial_widget_type = Proc;
+    let initial_widget_type = widget::BottomWidgetType::Proc(widget::proc::Proc);
     let _is_custom_layout = config.layout.is_some();
 
     let _show_memory_as_values = get_mem_as_value(matches, config);
@@ -214,8 +213,12 @@ pub fn build_app(
 
     let basic_table_widget_state = if use_basic_mode {
         Some(match initial_widget_type {
-            Proc | Disk | Temp => BasicTableWidgetState {
-                currently_displayed_widget_type: initial_widget_type,
+            widget::BottomWidgetType::Proc(_)
+            | widget::BottomWidgetType::Disk(_)
+            | widget::BottomWidgetType::Temp(_) => BasicTableWidgetState {
+                currently_displayed_widget_type: widget::BottomWidgetType::from(
+                    initial_widget_type,
+                ),
                 currently_displayed_widget_id: initial_widget_id,
                 widget_id: 100,
                 left_tlc: None,
@@ -224,7 +227,7 @@ pub fn build_app(
                 right_brc: None,
             },
             _ => BasicTableWidgetState {
-                currently_displayed_widget_type: Proc,
+                currently_displayed_widget_type: widget::BottomWidgetType::Proc(widget::proc::Proc),
                 currently_displayed_widget_id: DEFAULT_WIDGET_ID,
                 widget_id: 100,
                 left_tlc: None,
@@ -588,54 +591,8 @@ fn get_autohide_time(matches: &clap::ArgMatches<'static>, config: &Config) -> bo
 fn get_default_widget_and_count(
     matches: &clap::ArgMatches<'static>, config: &Config,
 ) -> error::Result<(Option<BottomWidgetType>, u64)> {
-    let widget_type = if let Some(widget_type) = matches.value_of("default_widget_type") {
-        let parsed_widget = widget_type.parse::<BottomWidgetType>()?;
-        if let BottomWidgetType::Empty = parsed_widget {
-            None
-        } else {
-            Some(parsed_widget)
-        }
-    } else if let Some(flags) = &config.flags {
-        if let Some(widget_type) = &flags.default_widget_type {
-            let parsed_widget = widget_type.parse::<BottomWidgetType>()?;
-            if let BottomWidgetType::Empty = parsed_widget {
-                None
-            } else {
-                Some(parsed_widget)
-            }
-        } else {
-            None
-        }
-    } else {
-        None
-    };
-
-    let widget_count = if let Some(widget_count) = matches.value_of("default_widget_count") {
-        Some(widget_count.parse::<u128>()?)
-    } else if let Some(flags) = &config.flags {
-        flags
-            .default_widget_count
-            .map(|widget_count| widget_count as u128)
-    } else {
-        None
-    };
-
-    match (widget_type, widget_count) {
-        (Some(widget_type), Some(widget_count)) => {
-            if widget_count > std::u64::MAX as u128 {
-                Err(BottomError::ConfigError(
-                    "set your widget count to be at most unsigned INT_MAX.".to_string(),
-                ))
-            } else {
-                Ok((Some(widget_type), widget_count as u64))
-            }
-        }
-        (Some(widget_type), None) => Ok((Some(widget_type), 1)),
-        (None, Some(_widget_count)) =>  Err(BottomError::ConfigError(
-            "cannot set 'default_widget_count' by itself, it must be used with 'default_widget_type'.".to_string(),
-        )),
-        (None, None) => Ok((None, 1))
-    }
+    // FIXME: [rewrite] redo getting default widget and count!
+    Ok((None, 1))
 }
 
 fn get_disable_click(matches: &clap::ArgMatches<'static>, config: &Config) -> bool {

@@ -5,6 +5,7 @@ pub mod filter;
 pub mod layout;
 mod process_killer;
 pub mod query;
+pub mod widget;
 pub mod widget_states;
 
 use typed_builder::*;
