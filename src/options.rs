@@ -185,7 +185,6 @@ pub fn build_app(
     let _is_match_whole_word = get_app_match_whole_word(matches, config);
     let _is_use_regex = get_app_use_regex(matches, config);
 
-    let widget_map = HashMap::new();
     let cpu_state_map: HashMap<u64, CpuWidgetState> = HashMap::new();
     let mem_state_map: HashMap<u64, MemWidgetState> = HashMap::new();
     let net_state_map: HashMap<u64, NetWidgetState> = HashMap::new();
@@ -318,16 +317,14 @@ pub fn build_app(
 
     Ok(AppState::builder()
         .app_config_fields(app_config_fields)
-        .cpu_state(CpuState::init(cpu_state_map))
-        .mem_state(MemState::init(mem_state_map))
-        .net_state(NetState::init(net_state_map))
-        .proc_state(ProcState::init(proc_state_map))
-        .disk_state(DiskState::init(disk_state_map))
-        .temp_state(TempState::init(temp_state_map))
-        .battery_state(BatteryState::init(battery_state_map))
+        .cpu_states(CpuState::init(cpu_state_map))
+        .mem_states(MemState::init(mem_state_map))
+        .net_states(NetState::init(net_state_map))
+        .proc_states(ProcState::init(proc_state_map))
+        .disk_states(DiskState::init(disk_state_map))
+        .temp_states(TempState::init(temp_state_map))
+        .battery_states(BatteryState::init(battery_state_map))
         .basic_table_widget_state(basic_table_widget_state)
-        .current_widget(BottomWidget::default()) // FIXME: [rewrite] This is currently not correct!!!!!!
-        .widget_map(widget_map)
         .used_widgets(used_widgets)
         .filters(DataFilters {
             disk_filter,

@@ -40,7 +40,6 @@ use crossterm::{
 
 use app::{
     data_harvester::{self, processes::ProcessSorting, UsedWidgets},
-    layout::WidgetDirection,
     AppState,
 };
 use constants::*;
@@ -81,20 +80,13 @@ pub enum InputEventOutput {
 
 pub fn handle_mouse_event(event: MouseEvent, app: &mut AppState) -> InputEventOutput {
     match event {
-        MouseEvent::ScrollUp(_x, _y, _modifiers) => {
-            app.handle_scroll_up();
-            InputEventOutput::Redraw
-        }
-        MouseEvent::ScrollDown(_x, _y, _modifiers) => {
-            app.handle_scroll_down();
-            InputEventOutput::Redraw
-        }
+        MouseEvent::ScrollUp(_x, _y, _modifiers) => InputEventOutput::Redraw,
+        MouseEvent::ScrollDown(_x, _y, _modifiers) => InputEventOutput::Redraw,
         MouseEvent::Down(button, x, y, _modifiers) => {
             if !app.app_config_fields.disable_click {
                 match button {
                     crossterm::event::MouseButton::Left => {
                         // Trigger left click widget activity
-                        app.on_left_mouse_up(x, y);
                         InputEventOutput::Redraw
                     }
                     _ => InputEventOutput::Ignore,
@@ -119,28 +111,28 @@ pub fn handle_key_event(
 
     if event.modifiers.is_empty() {
         // Required catch for searching - otherwise you couldn't search with q.
-        if event.code == KeyCode::Char('q') && !app.is_in_search_widget() {
-            return InputEventOutput::Exit;
-        }
+        // if event.code == KeyCode::Char('q') && !app.is_in_search_widget() {
+        //     return InputEventOutput::Exit;
+        // }
         match event.code {
-            KeyCode::End => app.skip_to_last(),
-            KeyCode::Home => app.skip_to_first(),
-            KeyCode::Up => app.on_up_key(),
-            KeyCode::Down => app.on_down_key(),
-            KeyCode::Left => app.on_left_key(),
-            KeyCode::Right => app.on_right_key(),
-            KeyCode::Char(caught_char) => app.on_char_key(caught_char),
-            KeyCode::Esc => app.on_esc(),
-            KeyCode::Enter => app.on_enter(),
-            KeyCode::Tab => app.on_tab(),
-            KeyCode::Backspace => app.on_backspace(),
-            KeyCode::Delete => app.on_delete(),
-            KeyCode::F(1) => app.toggle_ignore_case(),
-            KeyCode::F(2) => app.toggle_search_whole_word(),
-            KeyCode::F(3) => app.toggle_search_regex(),
-            KeyCode::F(5) => app.toggle_tree_mode(),
-            KeyCode::F(6) => app.toggle_sort(),
-            KeyCode::F(9) => app.start_killing_process(),
+            // KeyCode::End => app.skip_to_last(),
+            // KeyCode::Home => app.skip_to_first(),
+            // KeyCode::Up => app.on_up_key(),
+            // KeyCode::Down => app.on_down_key(),
+            // KeyCode::Left => app.on_left_key(),
+            // KeyCode::Right => app.on_right_key(),
+            // KeyCode::Char(caught_char) => app.on_char_key(caught_char),
+            // KeyCode::Esc => app.on_esc(),
+            // KeyCode::Enter => app.on_enter(),
+            // KeyCode::Tab => app.on_tab(),
+            // KeyCode::Backspace => app.on_backspace(),
+            // KeyCode::Delete => app.on_delete(),
+            // KeyCode::F(1) => app.toggle_ignore_case(),
+            // KeyCode::F(2) => app.toggle_search_whole_word(),
+            // KeyCode::F(3) => app.toggle_search_regex(),
+            // KeyCode::F(5) => app.toggle_tree_mode(),
+            // KeyCode::F(6) => app.toggle_sort(),
+            // KeyCode::F(9) => app.start_killing_process(),
             _ => {
                 return InputEventOutput::Ignore;
             }
@@ -149,11 +141,11 @@ pub fn handle_key_event(
         return InputEventOutput::Redraw;
     } else if let KeyModifiers::ALT = event.modifiers {
         match event.code {
-            KeyCode::Char('c') | KeyCode::Char('C') => app.toggle_ignore_case(),
-            KeyCode::Char('w') | KeyCode::Char('W') => app.toggle_search_whole_word(),
-            KeyCode::Char('r') | KeyCode::Char('R') => app.toggle_search_regex(),
-            KeyCode::Char('h') => app.on_left_key(),
-            KeyCode::Char('l') => app.on_right_key(),
+            // KeyCode::Char('c') | KeyCode::Char('C') => app.toggle_ignore_case(),
+            // KeyCode::Char('w') | KeyCode::Char('W') => app.toggle_search_whole_word(),
+            // KeyCode::Char('r') | KeyCode::Char('R') => app.toggle_search_regex(),
+            // KeyCode::Char('h') => app.on_left_key(),
+            // KeyCode::Char('l') => app.on_right_key(),
             _ => {
                 return InputEventOutput::Ignore;
             }
@@ -166,25 +158,23 @@ pub fn handle_key_event(
         }
 
         match event.code {
-            KeyCode::Char('f') => app.on_slash(),
-            KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
-            KeyCode::Right => app.move_widget_selection(&WidgetDirection::Right),
-            KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
-            KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
+            // KeyCode::Char('f') => app.on_slash(),
+            // FIXME: [rewrite] fix movement, also fix keycode for wasd/hjkl!
+            KeyCode::Left => {}
+            KeyCode::Right => {}
+            KeyCode::Up => {}
+            KeyCode::Down => {}
             KeyCode::Char('r') => {
                 if reset_sender.send(ThreadControlEvent::Reset).is_ok() {
                     app.reset();
                 }
             }
-            KeyCode::Char('a') => app.skip_cursor_beginning(),
-            KeyCode::Char('e') => app.skip_cursor_end(),
-            KeyCode::Char('u') => app.clear_search(),
-            KeyCode::Char('w') => app.clear_previous_word(),
-            KeyCode::Char('h') => app.on_backspace(),
-            // KeyCode::Char('j') => {}, // Move down
-            // KeyCode::Char('k') => {}, // Move up
-            // KeyCode::Char('h') => {}, // Move right
-            // KeyCode::Char('l') => {}, // Move left
+            // KeyCode::Char('a') => app.skip_cursor_beginning(),
+            // KeyCode::Char('e') => app.skip_cursor_end(),
+            // KeyCode::Char('u') => app.clear_search(),
+            // KeyCode::Char('w') => app.clear_previous_word(),
+            // KeyCode::Char('h') => app.on_backspace(),
+
             // Can't do now, CTRL+BACKSPACE doesn't work and graphemes
             // are hard to iter while truncating last (eloquently).
             // KeyCode::Backspace => app.skip_word_backspace(),
@@ -196,11 +186,12 @@ pub fn handle_key_event(
         return InputEventOutput::Redraw;
     } else if let KeyModifiers::SHIFT = event.modifiers {
         match event.code {
-            KeyCode::Left => app.move_widget_selection(&WidgetDirection::Left),
-            KeyCode::Right => app.move_widget_selection(&WidgetDirection::Right),
-            KeyCode::Up => app.move_widget_selection(&WidgetDirection::Up),
-            KeyCode::Down => app.move_widget_selection(&WidgetDirection::Down),
-            KeyCode::Char(caught_char) => app.on_char_key(caught_char),
+            // FIXME: [rewrite] fix movement, also fix keycode for wasd/hjkl!
+            KeyCode::Left => {}
+            KeyCode::Right => {}
+            KeyCode::Up => {}
+            KeyCode::Down => {}
+            // KeyCode::Char(caught_char) => app.on_char_key(caught_char),
             _ => {
                 return InputEventOutput::Ignore;
             }
@@ -320,32 +311,32 @@ pub fn panic_hook(panic_info: &PanicInfo<'_>) {
 pub fn handle_force_redraws(app: &mut AppState) {
     // Currently we use an Option... because we might want to future-proof this
     // if we eventually get widget-specific redrawing!
-    if app.proc_state.force_update_all {
+    if app.proc_states.force_update_all {
         update_all_process_lists(app);
-        app.proc_state.force_update_all = false;
-    } else if let Some(widget_id) = app.proc_state.force_update {
+        app.proc_states.force_update_all = false;
+    } else if let Some(widget_id) = app.proc_states.force_update {
         update_final_process_list(app, widget_id);
-        app.proc_state.force_update = None;
+        app.proc_states.force_update = None;
     }
 
-    if app.cpu_state.force_update.is_some() {
+    if app.cpu_states.force_update.is_some() {
         convert_cpu_data_points(
             &app.data_collection,
             &mut app.canvas_data.cpu_data,
             app.is_frozen,
         );
         app.canvas_data.load_avg_data = app.data_collection.load_avg_harvest;
-        app.cpu_state.force_update = None;
+        app.cpu_states.force_update = None;
     }
 
     // FIXME: [OPT] Prefer reassignment over new vectors?
-    if app.mem_state.force_update.is_some() {
+    if app.mem_states.force_update.is_some() {
         app.canvas_data.mem_data = convert_mem_data_points(&app.data_collection, app.is_frozen);
         app.canvas_data.swap_data = convert_swap_data_points(&app.data_collection, app.is_frozen);
-        app.mem_state.force_update = None;
+        app.mem_states.force_update = None;
     }
 
-    if app.net_state.force_update.is_some() {
+    if app.net_states.force_update.is_some() {
         let (rx, tx) = get_rx_tx_data_points(
             &app.data_collection,
             app.is_frozen,
@@ -355,7 +346,7 @@ pub fn handle_force_redraws(app: &mut AppState) {
         );
         app.canvas_data.network_data_rx = rx;
         app.canvas_data.network_data_tx = tx;
-        app.net_state.force_update = None;
+        app.net_states.force_update = None;
     }
 }
 
@@ -430,7 +421,7 @@ pub fn update_all_process_lists(app: &mut AppState) {
     // I end up conflicting with the borrow checker since app is used within the closure... hm.
     if !app.is_frozen {
         let widget_ids = app
-            .proc_state
+            .proc_states
             .widget_states
             .keys()
             .cloned()
@@ -444,7 +435,7 @@ pub fn update_all_process_lists(app: &mut AppState) {
 
 fn update_final_process_list(app: &mut AppState, widget_id: u64) {
     let process_states = app
-        .proc_state
+        .proc_states
         .widget_states
         .get(&widget_id)
         .map(|process_state| {
@@ -507,7 +498,7 @@ fn update_final_process_list(app: &mut AppState, widget_id: u64) {
                 .collect::<Vec<_>>()
         };
 
-        if let Some(proc_widget_state) = app.proc_state.get_mut_widget_state(widget_id) {
+        if let Some(proc_widget_state) = app.proc_states.get_mut_widget_state(widget_id) {
             let mut finalized_process_data = if is_tree {
                 tree_process_data(
                     &filtered_process_data,

@@ -2,7 +2,6 @@ use std::fmt::Display;
 
 use crate::error::{BottomError, Result};
 use serde::{Deserialize, Serialize};
-use typed_builder::*;
 
 /// The [`BottomLayout`] is the widget layout derived from a config file.
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
@@ -36,97 +35,20 @@ impl Default for BottomLayoutChild {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum WidgetDirection {
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
-impl WidgetDirection {
-    pub fn is_opposite(&self, other_direction: &WidgetDirection) -> bool {
-        match &self {
-            WidgetDirection::Left => *other_direction == WidgetDirection::Right,
-            WidgetDirection::Right => *other_direction == WidgetDirection::Left,
-            WidgetDirection::Up => *other_direction == WidgetDirection::Down,
-            WidgetDirection::Down => *other_direction == WidgetDirection::Up,
-        }
-    }
-}
-
-/// Represents a single widget.
-#[derive(Debug, Default, Clone, TypedBuilder)]
-pub struct BottomWidget {
-    pub widget_type: BottomWidgetType,
-    pub widget_id: u64,
-
-    #[builder(default = 1)]
-    pub width_ratio: u32,
-
-    #[builder(default = None)]
-    pub left_neighbour: Option<u64>,
-
-    #[builder(default = None)]
-    pub right_neighbour: Option<u64>,
-
-    #[builder(default = None)]
-    pub up_neighbour: Option<u64>,
-
-    #[builder(default = None)]
-    pub down_neighbour: Option<u64>,
-
-    /// If set to true, the canvas will override any ratios.
-    #[builder(default = false)]
-    pub canvas_handle_width: bool,
-
-    /// Whether we want this widget to take up all available room (and ignore any ratios).
-    #[builder(default = false)]
-    pub flex_grow: bool,
-
-    /// The value is the direction to bounce, as well as the parent offset.
-    #[builder(default = None)]
-    pub parent_reflector: Option<(WidgetDirection, u64)>,
-
-    /// Top left corner when drawn, for mouse click detection.  (x, y)
-    #[builder(default = None)]
-    pub top_left_corner: Option<(u16, u16)>,
-
-    /// Bottom right corner when drawn, for mouse click detection.  (x, y)
-    #[builder(default = None)]
-    pub bottom_right_corner: Option<(u16, u16)>,
-}
-
 // TODO: Merge with widgets or separate out.
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum BottomWidgetType {
     Empty,
     Cpu,
-    CpuLegend,
     Mem,
     Net,
     Proc,
-    ProcSearch,
-    ProcSort,
     Temp,
     Disk,
     BasicCpu,
     BasicMem,
     BasicNet,
-    BasicTables,
     Battery,
-}
-
-impl BottomWidgetType {
-    pub fn is_widget_table(&self) -> bool {
-        use BottomWidgetType::*;
-        matches!(self, Disk | Proc | ProcSort | Temp | CpuLegend)
-    }
-
-    pub fn is_widget_graph(&self) -> bool {
-        use BottomWidgetType::*;
-        matches!(self, Cpu | Net | Mem)
-    }
 }
 
 impl Default for BottomWidgetType {

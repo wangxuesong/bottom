@@ -3,7 +3,7 @@ use tui::{
     layout::{Constraint, Rect},
 };
 
-use crate::drawing::{Axis, Button, Col, Element, Text, Widget};
+use crate::drawing::{Button, Col, Element, Text, Widget};
 
 use super::button;
 
