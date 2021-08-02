@@ -2,7 +2,7 @@ use tui::{
     backend::Backend, layout::Constraint, style::Style as TuiStyle, text::Text, widgets::Paragraph,
 };
 
-use crate::drawing::{Element, Event, EventStatus, Node, Widget};
+use crate::drawing::{Element, Node, Widget};
 
 /// The [`State`] of a [`Button`] mostly represents whether it is pressed or not.
 #[derive(Default)]
@@ -20,7 +20,7 @@ pub struct Style {
 /// A [`Button`] is just a simple text element that supports "press" states.
 pub struct Button<'a> {
     text: &'a str,
-    state: &'a mut State,
+    state: &'a State,
     width: Constraint,
     height: Constraint,
     style: Style,
@@ -28,7 +28,7 @@ pub struct Button<'a> {
 
 impl<'a> Button<'a> {
     /// Creates a new [`Button`].
-    pub fn new(text: &'a str, state: &'a mut State) -> Self {
+    pub fn new(text: &'a str, state: &'a State) -> Self {
         Self {
             text,
             state,
@@ -86,35 +86,6 @@ where
 
     fn height(&self) -> tui::layout::Constraint {
         self.height
-    }
-
-    fn on_event(&mut self, event: Event) -> EventStatus {
-        // Support the enter key and a left click action.  These both assume that the button is "in focus".
-        //
-        // Note that for the "Enter" event, we don't actually "change" the state - we cannot detect mouse up.
-        // TODO: Send "signal" back out with handled case
-        use crossterm::event::{KeyCode, MouseButton, MouseEvent};
-
-        match event {
-            Event::Mouse(event) => match event {
-                MouseEvent::Down(MouseButton::Left, _, _, _) => {
-                    self.state.is_pressed = true;
-                    EventStatus::Handled
-                }
-                MouseEvent::Up(MouseButton::Left, _, _, _) => {
-                    self.state.is_pressed = false;
-                    EventStatus::Handled
-                }
-                _ => EventStatus::Ignored,
-            },
-            Event::Keyboard(event) => {
-                if event.code == KeyCode::Enter {
-                    EventStatus::Handled
-                } else {
-                    EventStatus::Ignored
-                }
-            }
-        }
     }
 }
 

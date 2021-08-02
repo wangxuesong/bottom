@@ -4,20 +4,9 @@ use tui::{
     Frame,
 };
 
-use crate::drawing::{Event, EventStatus};
-
 use super::Node;
 
 pub trait Widget<B: Backend> {
-    // /// Returns a hash of the [`Widget`].  Useful for determining whether recalculations are needed due to
-    // /// new state.
-    // fn hash(&self, state: &mut Hasher);
-
-    /// How the [`Widget`] should handle an event.  Defaults to ignoring the event.
-    fn on_event(&mut self, _event: Event) -> EventStatus {
-        EventStatus::Ignored
-    }
-
     /// How the [`Widget`] should be drawn, given a [`Node`] for its layout..
     fn draw(&mut self, ctx: &mut Frame<'_, B>, node: &'_ Node);
 

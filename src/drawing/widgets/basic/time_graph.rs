@@ -59,7 +59,7 @@ impl Default for State {
 ///
 /// A [`TimeGraph`] also supports handling zoom for time ranges as an event.
 pub struct TimeGraph<'a> {
-    state: &'a mut State,
+    state: &'a State,
     data: &'a [(&'a [Point], TuiStyle, &'a str)],
     y_bounds: &'a [f64; 2],
     y_labels: &'a [String],
@@ -72,7 +72,7 @@ pub struct TimeGraph<'a> {
 impl<'a> TimeGraph<'a> {
     /// Creates a new [`TimeGraph`].
     pub fn new(
-        state: &'a mut State, data: &'a [(&'a [Point], TuiStyle, &'a str)], y_bounds: &'a [f64; 2],
+        state: &'a State, data: &'a [(&'a [Point], TuiStyle, &'a str)], y_bounds: &'a [f64; 2],
         y_labels: &'a [String],
     ) -> Self {
         Self {

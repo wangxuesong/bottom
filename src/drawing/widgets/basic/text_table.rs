@@ -57,7 +57,7 @@ where
     [T]: ToOwned<Owned = Vec<T>>,
 {
     /// The state of the [`TextTable`].
-    state: &'a mut State,
+    state: &'a State,
 
     /// The headers to use for the [`TextTable`].
     headers: Cow<'a, [T]>,
@@ -89,7 +89,7 @@ where
     /// the caller must ensure (if they care for it).  A mismatch in header and data size may result in drawing
     /// data without headers or headers without data, which is a valid state, but may not be desired!
     pub fn new(
-        state: &'a mut State, headers: impl Into<Cow<'a, [T]>>,
+        state: &'a State, headers: impl Into<Cow<'a, [T]>>,
         data: impl Into<Cow<'a, [Cow<'a, [T]>]>>,
     ) -> Self {
         Self {

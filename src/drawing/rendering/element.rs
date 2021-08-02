@@ -4,7 +4,7 @@ use tui::{
     Frame,
 };
 
-use crate::drawing::{Event, EventStatus, Node, Widget};
+use crate::drawing::{Node, Widget};
 
 /// The instantiated and boxed representation of a [`Widget`].
 pub struct Element<'a, B: Backend> {
@@ -15,11 +15,6 @@ impl<'a, B: Backend> Element<'a, B> {
     /// Creates a new [`Element`] given a boxed [`Widget`].
     pub fn new(widget: Box<dyn Widget<B> + 'a>) -> Self {
         Self { widget }
-    }
-
-    /// How the [`Element`] should handle an event.
-    pub fn on_event(&mut self, event: Event) -> EventStatus {
-        self.widget.on_event(event)
     }
 
     /// How the [`Element`] should be drawn given a [`Node`].

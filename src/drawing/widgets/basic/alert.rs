@@ -22,7 +22,7 @@ pub struct Alert<'a, B: Backend> {
 }
 
 impl<'a, B: Backend + 'a> Alert<'a, B> {
-    pub fn new(state: &'a mut State, text: &'a str, buttons: Vec<&'a str>) -> Self {
+    pub fn new(state: &'a State, text: &'a str, buttons: Vec<&'a str>) -> Self {
         let State {
             // selected_button_index,
             button_states,

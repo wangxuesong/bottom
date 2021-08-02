@@ -26,7 +26,7 @@ pub struct Carousel<'a, B>
 where
     B: Backend,
 {
-    state: &'a mut State,
+    state: &'a State,
     children: Vec<NamedElement<'a, B>>,
     width: Constraint,
     height: Constraint,
@@ -34,7 +34,7 @@ where
 
 impl<'a, B: Backend> Carousel<'a, B> {
     /// Creates a new [`Carousel`].
-    pub fn new(state: &'a mut State, children: Vec<NamedElement<'a, B>>) -> Self {
+    pub fn new(state: &'a State, children: Vec<NamedElement<'a, B>>) -> Self {
         Self {
             state,
             children,

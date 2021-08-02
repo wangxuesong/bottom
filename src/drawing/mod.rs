@@ -5,9 +5,6 @@ mod widgets;
 use tui::{backend::Backend, Terminal};
 pub use widgets::*;
 
-pub mod event;
-pub use event::*;
-
 pub mod hasher;
 pub use hasher::Hasher;
 
