@@ -125,22 +125,8 @@ fn main() -> Result<()> {
     while !is_terminated.load(Ordering::SeqCst) {
         if let Ok(recv) = receiver.recv() {
             match recv {
-                BottomEvent::KeyInput(event) => {
-                    match handle_key_event(event, &mut app, &collection_thread_ctrl_sender) {
-                        InputEventOutput::Redraw => {
-                            handle_force_redraws(&mut app);
-                        }
-                        InputEventOutput::Ignore => {}
-                        InputEventOutput::Exit => break,
-                    }
-                }
-                BottomEvent::MouseInput(event) => match handle_mouse_event(event, &mut app) {
-                    InputEventOutput::Redraw => {
-                        handle_force_redraws(&mut app);
-                    }
-                    InputEventOutput::Ignore => {}
-                    InputEventOutput::Exit => break,
-                },
+                BottomEvent::KeyInput(event) => {}
+                BottomEvent::MouseInput(event) => {}
                 BottomEvent::Update(data) => {
                     app.data_collection.eat_data(data);
 

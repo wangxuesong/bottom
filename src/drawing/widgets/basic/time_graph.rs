@@ -22,6 +22,7 @@ pub struct Style {
 }
 
 /// Represents how to display the time (x-axis).
+#[derive(Debug, Clone)]
 pub enum TimeStatus {
     /// Disable the time, always hiding it.
     Disabled,
@@ -37,6 +38,7 @@ pub enum TimeStatus {
 }
 
 /// Represents the state of a [`TimeGraph`].
+#[derive(Debug, Clone)]
 pub struct State {
     /// The current start of the time range in milliseconds.  Defaults to 60s, or 60 * 1000ms.
     time_start: u64,

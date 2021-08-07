@@ -1,6 +1,6 @@
 pub mod data_farmer;
 pub mod data_harvester;
-mod event_handler;
+pub mod event_handler;
 pub mod filter;
 pub mod layout;
 mod process_killer;
@@ -105,13 +105,6 @@ pub struct AppState {
     pub used_widgets: UsedWidgets,
     pub filters: DataFilters,
 }
-
-#[cfg(target_os = "windows")]
-const MAX_KILL_SIGNAL: usize = 1;
-#[cfg(target_os = "linux")]
-const MAX_KILL_SIGNAL: usize = 64;
-#[cfg(target_os = "macos")]
-const MAX_KILL_SIGNAL: usize = 31;
 
 impl AppState {
     pub fn reset(&mut self) {

@@ -16,9 +16,6 @@ pub enum BottomError {
     /// An error when the heim library encounters a problem.
     #[error("Error caused by Heim, {0}")]
     InvalidHeim(String),
-    /// An error when the Crossterm library encounters a problem.
-    #[error("Error caused by Crossterm, {0}")]
-    CrosstermError(String),
     /// An error to represent generic errors.
     #[error("Generic error, {0}")]
     GenericError(String),
@@ -52,12 +49,6 @@ impl From<std::io::Error> for BottomError {
 impl From<heim::Error> for BottomError {
     fn from(err: heim::Error) -> Self {
         BottomError::InvalidHeim(err.to_string())
-    }
-}
-
-impl From<crossterm::ErrorKind> for BottomError {
-    fn from(err: crossterm::ErrorKind) -> Self {
-        BottomError::CrosstermError(err.to_string())
     }
 }
 

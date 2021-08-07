@@ -40,6 +40,7 @@ use crossterm::{
 
 use app::{
     data_harvester::{self, processes::ProcessSorting, UsedWidgets},
+    event_handler::InputEvent,
     AppState,
 };
 use constants::*;
@@ -56,9 +57,8 @@ pub type Pid = usize;
 pub type Pid = libc::pid_t;
 
 #[derive(Debug)]
-pub enum BottomEvent<I, J> {
-    KeyInput(I),
-    MouseInput(J),
+pub enum BottomEvent {
+    Input(InputEvent),
     Update(Box<data_harvester::Data>),
     Clean,
     RequestRedraw,
@@ -78,25 +78,8 @@ pub enum InputEventOutput {
     Exit,
 }
 
-pub fn handle_mouse_event(event: MouseEvent, app: &mut AppState) -> InputEventOutput {
-    match event {
-        MouseEvent::ScrollUp(_x, _y, _modifiers) => InputEventOutput::Redraw,
-        MouseEvent::ScrollDown(_x, _y, _modifiers) => InputEventOutput::Redraw,
-        MouseEvent::Down(button, x, y, _modifiers) => {
-            if !app.app_config_fields.disable_click {
-                match button {
-                    crossterm::event::MouseButton::Left => {
-                        // Trigger left click widget activity
-                        InputEventOutput::Redraw
-                    }
-                    _ => InputEventOutput::Ignore,
-                }
-            } else {
-                InputEventOutput::Ignore
-            }
-        }
-        _ => InputEventOutput::Ignore,
-    }
+pub fn handle_mouse_event(_event: MouseEvent, _app: &mut AppState) -> InputEventOutput {
+    InputEventOutput::Redraw
 }
 
 pub fn handle_key_event(
@@ -663,10 +646,7 @@ fn sort_process_data(
 }
 
 pub fn create_input_thread(
-    sender: std::sync::mpsc::Sender<
-        BottomEvent<crossterm::event::KeyEvent, crossterm::event::MouseEvent>,
-    >,
-    termination_ctrl_lock: Arc<Mutex<bool>>,
+    sender: std::sync::mpsc::Sender<BottomEvent>, termination_ctrl_lock: Arc<Mutex<bool>>,
 ) -> std::thread::JoinHandle<()> {
     thread::spawn(move || {
         let mut mouse_timer = Instant::now();
@@ -686,7 +666,10 @@ pub fn create_input_thread(
                         match event {
                             Event::Key(key) => {
                                 if Instant::now().duration_since(keyboard_timer).as_millis() >= 20 {
-                                    if sender.send(BottomEvent::KeyInput(key)).is_err() {
+                                    if sender
+                                        .send(BottomEvent::Input(InputEvent::KeyEvent(key)))
+                                        .is_err()
+                                    {
                                         break;
                                     }
                                     keyboard_timer = Instant::now();
@@ -694,7 +677,10 @@ pub fn create_input_thread(
                             }
                             Event::Mouse(mouse) => {
                                 if Instant::now().duration_since(mouse_timer).as_millis() >= 20 {
-                                    if sender.send(BottomEvent::MouseInput(mouse)).is_err() {
+                                    if sender
+                                        .send(BottomEvent::Input(InputEvent::MouseEvent(mouse)))
+                                        .is_err()
+                                    {
                                         break;
                                     }
                                     mouse_timer = Instant::now();
@@ -714,9 +700,7 @@ pub fn create_input_thread(
 }
 
 pub fn create_collection_thread(
-    sender: std::sync::mpsc::Sender<
-        BottomEvent<crossterm::event::KeyEvent, crossterm::event::MouseEvent>,
-    >,
+    sender: std::sync::mpsc::Sender<BottomEvent>,
     control_receiver: std::sync::mpsc::Receiver<ThreadControlEvent>,
     termination_ctrl_lock: Arc<Mutex<bool>>, termination_ctrl_cvar: Arc<Condvar>,
     app_config_fields: &app::AppConfigFields, filters: app::DataFilters,

@@ -7,8 +7,8 @@ pub use self::mem::Mem;
 pub mod net;
 pub use self::net::Net;
 
-pub mod proc;
-pub use self::proc::Proc;
+pub mod process;
+pub use self::process::Proc;
 
 pub mod temp;
 pub use self::temp::Temp;
@@ -53,7 +53,7 @@ pub enum BottomWidgetType {
 
 #[enum_dispatch]
 pub trait BottomWidget<B: Backend> {
-    fn create_element<'a>(&self) -> Element<'a, B>;
+    fn create_element<'a>(&'a self, app_state: &crate::app::AppState) -> Element<'a, B>;
 }
 
 impl Display for BottomWidgetType {
@@ -82,7 +82,7 @@ impl std::str::FromStr for BottomWidgetType {
             "cpu" => Ok(BottomWidgetType::Cpu(Cpu::default())),
             "mem" | "memory" => Ok(BottomWidgetType::Mem(Mem)),
             "net" | "network" => Ok(BottomWidgetType::Net(Net)),
-            "proc" | "process" | "processes" => Ok(BottomWidgetType::Proc(Proc)),
+            "proc" | "process" | "processes" => Ok(BottomWidgetType::Proc(Proc::default())),
             "temp" | "temperature" => Ok(BottomWidgetType::Temp(Temp)),
             "disk" => Ok(BottomWidgetType::Disk(Disk)),
             "battery" | "batt" => Ok(BottomWidgetType::Battery(Battery)),

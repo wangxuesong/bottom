@@ -199,7 +199,7 @@ pub fn build_app(
     };
 
     let initial_widget_id: u64 = default_widget_id;
-    let initial_widget_type = widget::BottomWidgetType::Proc(widget::proc::Proc);
+    let initial_widget_type = widget::BottomWidgetType::Proc(widget::process::Proc::default());
     let _is_custom_layout = config.layout.is_some();
 
     let _show_memory_as_values = get_mem_as_value(matches, config);
@@ -227,7 +227,9 @@ pub fn build_app(
                 right_brc: None,
             },
             _ => BasicTableWidgetState {
-                currently_displayed_widget_type: widget::BottomWidgetType::Proc(widget::proc::Proc),
+                currently_displayed_widget_type: widget::BottomWidgetType::Proc(
+                    widget::process::Proc::default(),
+                ),
                 currently_displayed_widget_id: DEFAULT_WIDGET_ID,
                 widget_id: 100,
                 left_tlc: None,

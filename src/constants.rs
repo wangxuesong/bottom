@@ -1,6 +1,13 @@
 use crate::options::ConfigColors;
 use once_cell::sync::Lazy;
 
+#[cfg(target_os = "windows")]
+const MAX_KILL_SIGNAL: usize = 1;
+#[cfg(target_os = "linux")]
+const MAX_KILL_SIGNAL: usize = 64;
+#[cfg(target_os = "macos")]
+const MAX_KILL_SIGNAL: usize = 31;
+
 // Default widget ID
 pub const DEFAULT_WIDGET_ID: u64 = 56709;
 

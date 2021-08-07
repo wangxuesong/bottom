@@ -1,14 +1,14 @@
-use crate::drawing::cpu_widget::State;
-
 use super::BottomWidget;
 
 #[derive(Debug, Clone, Default)]
 pub struct Cpu {
-    widget_state: CpuState,
+    state: CpuState,
 }
 
 impl<B: tui::backend::Backend> BottomWidget<B> for Cpu {
-    fn create_element<'a>(&self) -> crate::drawing::Element<'a, B> {
+    fn create_element<'a>(
+        &'a self, app_state: &crate::app::AppState,
+    ) -> crate::drawing::Element<'a, B> {
         todo!()
     }
 }
@@ -16,5 +16,7 @@ impl<B: tui::backend::Backend> BottomWidget<B> for Cpu {
 #[derive(Debug, Clone, Default)]
 
 struct CpuState {
-    draw_state: State,
+    current_display_time: u64,
+    is_legend_hidden: bool,
+    current_scroll_position: usize,
 }
